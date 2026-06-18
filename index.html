@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 CHIẾN THẦN BẮT TREND - ICEBREAKER GAME</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fdcb6e;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --success: #00b894;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #6c5ce7, #00cec9);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 700px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 3px dashed var(--secondary);
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            background: var(--light);
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+
+        .timer { color: #d63031; font-size: 18px; }
+        .score-display { color: var(--success); font-size: 18px; }
+
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.5s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 15px 0;
+            border: 2px solid var(--secondary);
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            background: #5b4cc4;
+            transform: translateY(-2px);
+        }
+
+        .round-tag {
+            background: var(--accent);
+            color: var(--dark);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .hint-box {
+            background: #fff9db;
+            border-left: 5px solid var(--accent);
+            padding: 10px;
+            margin-bottom: 20px;
+            font-style: italic;
+            font-size: 15px;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background: var(--light);
+            border: 2px solid #e4e7eb;
+            padding: 14px;
+            text-align: left;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .leaderboard {
+            margin-top: 20px;
+            background: var(--light);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .audio-wave {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            height: 40px;
+            margin: 15px 0;
+        }
+
+        .bar {
+            width: 4px;
+            height: 10px;
+            background: var(--primary);
+            animation: bounce 0.5s ease-in-out infinite alternate;
+        }
+        .bar:nth-child(2) { animation-delay: 0.1s; }
+        .bar:nth-child(3) { animation-delay: 0.2s; }
+        .bar:nth-child(4) { animation-delay: 0.3s; }
+        .bar:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            100% { height: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <!-- Header chung cho trò chơi -->
+    <div class="header">
+        <h1>🧠 CHIẾN THẦN BẮT TREND</h1>
+        <p>Game Phá Băng Sôi Động Dành Cho Học Sinh Cấp 3</p>
+    </div>
+
+    <!-- Thanh trạng thái thời gian và điểm số -->
+    <div class="status-bar" id="statusBar" style="display: none;">
+        <div class="timer">⏳ Thời gian: <span id="timeLeft">15:00</span></div>
+        <div class="score-display">✨ Điểm: <span id="currentScore">0</span>/100</div>
+    </div>
+
+    <!-- MÀN HÌNH 1: ĐĂNG KÝ TÊN -->
+    <div id="screen-welcome" class="screen active">
+        <h3>Chào mừng các bạn đến với thử thách phá băng!</h3>
+        <p style="margin-top: 10px; color: #666;">Nhập tên của bạn/đội của bạn để bắt đầu cuộc đua. Lưu ý: Bạn chỉ được tham gia thử thách này 1 lần duy nhất!</p>
+        <input type="text" id="playerName" placeholder="Nhập tên của bạn hoặc tên Đội..." autocomplete="off">
+        <button class="btn" onclick="startGame()">BẮT ĐẦU CHIẾN NGAY 🚀</button>
+    </div>
+
+    <!-- MÀN HÌNH 2: NỘI DUNG CÂU HỎI -->
+    <div id="screen-game" class="screen">
+        <div id="roundTag" class="round-tag">Vòng 1</div>
+        <div id="audioVisual" class="audio-wave" style="display: none;">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+        <div class="hint-box" id="hintBox">Gợi ý âm thanh: "Tèn ten ten tèn..."</div>
+        <div class="question-text" id="questionText">Câu hỏi ở đây?</div>
+        <div class="options-container" id="optionsContainer">
+            <!-- Các phương án trả lời sẽ tự động tạo ở đây -->
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH 3: KẾT QUẢ / BẢNG VÀNG -->
+    <div id="screen-result" class="screen">
+        <h2 style="text-align: center; color: var(--success); margin-bottom: 10px;">🏆 HẾT GIỜ / HOÀN THÀNH!</h2>
+        <h3 style="text-align: center; margin-bottom: 20px;">Chúc mừng <span id="finalName" style="color: var(--primary);">...</span> đã hoàn thành thử thách!</h3>
+        
+        <div style="text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 25px; background: #e8f8f5; padding: 15px; border-radius: 10px;">
+            Tổng số điểm đạt được: <span id="finalScore" style="color: #00b894;">0</span> / 100 Điểm
+        </div>
+
+        <div class="leaderboard">
+            <h4 style="margin-bottom: 10px; border-bottom: 2px solid var(--secondary); padding-bottom: 5px;">🎖️ BẢNG VÀNG VINH DANH (LEADERBOARD)</h4>
+            <div id="leaderboardList">
+                <!-- Danh sách xếp hạng -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Khởi tạo bộ dữ liệu 10 câu hỏi theo đúng kịch bản yêu cầu
+    const questions = [
+        {
+            round: "VÒNG 1: NGHE NHẠC HIỆU - ĐOÁN CHƯƠNG TRÌNH",
+            isAudio: true,
+            hint: "🎵 Nhạc hiệu giật gân: 'Tèn ten ten tèn...' (Tiếng nhạc khi tìm thấy trận/vào trận).",
+            q: "Đây là âm thanh quen thuộc báo hiệu bạn chuẩn bị bước vào trận chiến sinh tử của tựa game quốc dân nào?",
+            options: ["Liên Quân Mobile / Liên Minh Huyền Thoại", "PUBG Mobile", "Free Fire", "Subway Surfers"],
+            correct: 0
+        },
+        {
+            round: "VÒNG 1: NGHE NHẠC HIỆU - ĐOÁN CHƯƠNG TRÌNH",
+            isAudio: true,
+            hint: "🎵 Nhạc nền nhẹ nhàng, tiếng piano du dương kết hợp tiếng gió vi vu trên thảo nguyên.",
+            q: "Bản nhạc này thuộc về tựa game thế giới mở nào mà các 'vương quốc' đang ngày đêm đi nhặt rương và cầu nguyện không bị 'lệch rate'?",
+            options: ["Minecraft", "Genshin Impact", "Play Together", "Valorant"],
+            correct: 1
+        },
+        {
+            round: "VÒNG 1: NGHE NHẠC HIỆU - ĐOÁN CHƯƠNG TRÌNH",
+            isAudio: true,
+            hint: "🎵 Đoạn nhạc beat lofi cực cuốn đang làm mưa làm gió trên các video biến hình.",
+            q: "Bài hát/Đoạn nhạc này đang là trend biến hình hay nhảy cover hot nhất trên nền tảng mạng xã hội nào hiện nay?",
+            options: ["Facebook Reels", "Instagram", "TikTok / CapCut", "YouTube Shorts"],
+            correct: 2
+        },
+        {
+            round: "VÒNG 2: CHIẾN THẦN LƯỚT PHIM & THUẬT NGỮ MẠNG",
+            isAudio: false,
+            hint: "💬 Thuật ngữ mạng của Gen Z",
+            q: "Bạn lướt Facebook/TikTok và thấy mọi người bình luận cụm từ 'Cứu dữ chưa' hoặc 'Glow up'. Cụm từ này thường được Gen Z dùng trong hoàn cảnh nào?",
+            options: ["Khi làm xong bài tập về nhà xuất sắc", "Khi gặp tình huống bất ổn, dở khóc dở cười và hoàn toàn bất lực", "Khi muốn rủ bạn bè đi ăn chè", "Khi vừa mua được một đôi giày mới"],
+            correct: 1
+        },
+        {
+            round: "VÒNG 2: CHIẾN THẦN LƯỚT PHIM & THUẬT NGỮ MẠNG",
+            isAudio: false,
+            hint: "🍌 Meme siêu chuối",
+            q: "Một nhân vật hoạt hình màu vàng, thích ăn chuối, nói năng líu lo, xuất hiện ngập tràn trong các meme chế ảnh trên MXH. Nhân vật đáng yêu này tên là gì và thuộc vũ trụ điện ảnh nào?",
+            options: ["Pikachu (Pokémon)", "Minions (Phim Kẻ Trộm Mặt Trăng / Despicable Me)", "SpongeBob (Chú bọt biển tinh nghịch)", "Xuka (Doraemon)"],
+            correct: 1
+        },
+        {
+            round: "VÒNG 2: CHIẾN THẦN LƯỚT PHIM & THUẬT NGỮ MẠNG",
+            isAudio: false,
+            hint: "😎 Nghệ thuật 'Khoe' đỉnh cao",
+            q: "Trào lưu 'flex' từng làm mưa làm gió. Nếu bạn khoe: 'Hôm nay mình đi học muộn nhưng vừa kịp lúc thầy điểm danh xong', hành động này gọi là gì?",
+            options: ["Flexing (Khoe một cách hài hước/tinh tế)", "Thao túng tâm lý", "Đỡ bằng niềm tin", "Sống ảo"],
+            correct: 0
+        },
+        {
+            round: "VÒNG 2: CHIẾN THẦN LƯỚT PHIM & THUẬT NGỮ MẠNG",
+            isAudio: false,
+            hint: "⏱️ Thời gian tồn tại khoảnh khắc ngắn",
+            q: "Tính năng 'Story' (Tin ngắn) trên Facebook và Instagram tồn tại trong bao lâu trước khi tự động biến mất?",
+            options: ["12 giờ", "48 giờ", "7 ngày", "24 giờ"],
+            correct: 3
+        },
+        {
+            round: "VÒNG 3: THỬ THÁCH 'TAY NHANH HƠN NÃO'",
+            isAudio: false,
+            hint: "💃 Thử thách hành động tại chỗ (Quản trò chấm điểm độ lầy lội)",
+            q: "Yêu cầu: Hãy đứng dậy hoặc giơ tay tạo dáng (pose) lại một điệu nhảy hoặc một cử chỉ tay (như thả tim kiểu mới) đang thịnh hành nhất trên mạng xã hội hiện nay!",
+            options: ["Mình đã làm xong cực lầy lội (Nhấn để nhận 10đ)", "Mình ngại quá bỏ qua câu này thôi"],
+            correct: 0
+        },
+        {
+            round: "VÒNG 3: THỬ THÁCH 'TAY NHANH HƠN NÃO'",
+            isAudio: false,
+            hint: "🦆 Kẻ ẩn nấp trong bóng tối",
+            q: "Trong một tựa game sinh tồn phối hợp đồng đội (Co-op) như Among Us hoặc Goose Goose Duck. Người chơi làm nhiệm vụ thì gọi là Dân (Crewmate), vậy kẻ chuyên đi ẩn nấp trong đường ống thông hơi để 'hại' người khác gọi là gì?",
+            options: ["Cảnh sát chìm", "Kẻ mạo danh / Impostor / Vịt thối", "Thợ sửa ống nước", "Hacker"],
+            correct: 1
+        },
+        {
+            round: "VÒNG 3: THỬ THÁCH 'TAY NHANH HƠN NÃO'",
+            isAudio: false,
+            hint: "🎤 Nối tiếp câu hát On-Trending Gen Z",
+            q: "Cụm từ 'Ý em là sao?' hoặc câu hát viral của một ca sĩ nổi tiếng đang làm mưa làm gió. Để hoàn thành thử thách bắt trend này, hãy chọn câu hát nối tiếp đúng nhất!",
+            options: ["Ý em là... ý em là... (Bài hát Ý Em Là Sao - Kay Trần)", "Em thích thì em làm thôi", "Không biết luôn á!", "Tình cờ chúng ta gặp nhau"],
+            correct: 0
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timerInterval;
+    let totalTime = 15 * 60; // 15 phút đổi ra giây
+    let player = "";
+
+    // Giả lập Web Audio API để phát âm thanh mà không cần tệp bên ngoài
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'click') {
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        } else if (type === 'correct') {
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        } else if (type === 'victory') {
+            // Chuỗi âm thanh chiến thắng giòn giã
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.connect(g); g.connect(audioCtx.destination);
+                o.frequency.setValueAtTime(freq, audioCtx.currentTime + i*0.1);
+                g.gain.setValueAtTime(0.1, audioCtx.currentTime + i*0.1);
+                o.start(audioCtx.currentTime + i*0.1);
+                o.stop(audioCtx.currentTime + i*0.1 + 0.2);
+            });
+        }
+    }
+
+    // Hàm bắt đầu trò chơi
+    function startGame() {
+        const nameInput = document.getElementById("playerName").value.trim();
+        if (nameInput === "") {
+            alert("Bạn ơi, vui lòng nhập tên hoặc tên Đội trước khi chơi nhé!");
+            return;
+        }
+
+        // Kiểm tra xem người chơi này đã từng chơi trên máy này chưa (Chống làm lại lần 2)
+        if (localStorage.getItem("played_" + nameInput)) {
+            alert("Rất tiếc! Tên/Đội này đã tham gia thử thách một lần rồi. Trò chơi phá băng chỉ cho phép làm 1 lần duy nhất!");
+            return;
+        }
+
+        player = nameInput;
+        document.getElementById("screen-welcome").classList.remove("active");
+        document.getElementById("screen-game").classList.add("active");
+        document.getElementById("statusBar").style.display = "flex";
+        
+        playSound('click');
+        startTimer();
+        showQuestion();
+    }
+
+    // Bộ đếm ngược thời gian 15 phút
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            totalTime--;
+            let mins = Math.floor(totalTime / 60);
+            let secs = totalTime % 60;
+            
+            document.getElementById("timeLeft").innerText = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                endGame();
+            }
+        }, 1000);
+    }
+
+    // Hiển thị câu hỏi hiện tại lên giao diện
+    function showQuestion() {
+        if (currentQuestionIndex >= questions.length) {
+            endGame();
+            return;
+        }
+
+        const currentQ = questions[currentQuestionIndex];
+        
+        document.getElementById("roundTag").innerText = currentQ.round;
+        document.getElementById("hintBox").innerText = currentQ.hint;
+        document.getElementById("questionText").innerText = `Câu ${currentQuestionIndex + 1}: ${currentQ.q}`;
+
+        // Hiển thị sóng nhạc động nếu là câu nghe nhạc hiệu đoán chương trình
+        const audioVisual = document.getElementById("audioVisual");
+        if (currentQ.isAudio) {
+            audioVisual.style.display = "flex";
+        } else {
+            audioVisual.style.display = "none";
+        }
+
+        // Tạo danh sách các nút phương án
+        const optionsContainer = document.getElementById("optionsContainer");
+        optionsContainer.innerHTML = "";
+        
+        currentQ.options.forEach((option, index) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = option;
+            btn.onclick = () => selectOption(index);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    // Xử lý khi người dùng chọn một đáp án
+    function selectOption(selectedIndex) {
+        const currentQ = questions[currentQuestionIndex];
+        
+        // Nếu chọn đúng đáp án cộng 10 điểm
+        if (selectedIndex === currentQ.correct) {
+            score += 10;
+            playSound('correct');
+        } else {
+            playSound('click');
+        }
+
+        document.getElementById("currentScore").innerText = score;
+        
+        // Chuyển sang câu kế tiếp
+        currentQuestionIndex++;
+        showQuestion();
+    }
+
+    // Kết thúc game, khóa kết quả và ghi vào Bảng Vàng (chỉ chạy 1 lần)
+    function endGame() {
+        clearInterval(timerInterval);
+        document.getElementById("screen-game").classList.remove("active");
+        document.getElementById("statusBar").style.display = "none";
+        document.getElementById("screen-result").classList.add("active");
+
+        document.getElementById("finalName").innerText = player;
+        document.getElementById("finalScore").innerText = score;
+
+        playSound('victory');
+
+        // Lưu trạng thái đã chơi của tài khoản/đội này để không cho chơi lại lần 2
+        localStorage.setItem("played_" + player, score);
+
+        // Lưu danh sách xếp hạng tổng vào bộ nhớ trình duyệt (Local Storage)
+        let localLeaderboard = JSON.parse(localStorage.getItem("icebreaker_leaderboard")) || [];
+        localLeaderboard.push({ name: player, score: score, time: 15 * 60 - totalTime });
+        // Sắp xếp theo điểm giảm dần, nếu bằng điểm thì ai tốn ít thời gian hơn xếp trên
+        localLeaderboard.sort((a, b) => b.score - a.score || a.time - b.time);
+        localStorage.setItem("icebreaker_leaderboard", JSON.stringify(localLeaderboard));
+
+        // Hiển thị Bảng Vàng lên màn hình
+        renderLeaderboard(localLeaderboard);
+    }
+
+    // Hiển thị danh sách bảng xếp hạng
+    function renderLeaderboard(list) {
+        const container = document.getElementById("leaderboardList");
+        container.innerHTML = "";
+
+        list.slice(0, 5).forEach((item, index) => {
+            let medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`;
+            let minutes = Math.floor(item.time / 60);
+            let seconds = item.time % 60;
+            
+            const div = document.createElement("div");
+            div.className = "leaderboard-item";
+            div.innerHTML = `
+                <span>${medal} <strong>${item.name}</strong></span>
+                <span>⏱️ ${minutes}m${seconds}s | <strong style="color:var(--success)">${item.score}đ</strong></span>
+            `;
+            container.appendChild(div);
+        });
+    }
+</script>
+</body>
+</html>
